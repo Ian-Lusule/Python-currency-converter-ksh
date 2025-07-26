@@ -1,0 +1,73 @@
+```gitignore
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.eggs/
+dist/
+build/
+.tox/
+build/lib*
+*.egg-info/
+.env
+
+# Python specific
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Virtual environments
+.venv/
+venv/
+env/
+.virtualenv/
+
+# IDE files
+.idea/
+*.iml
+*.suo
+*.csproj
+*.sln
+*.user
+*.userprefs
+*.vssettings
+
+# Package management
+Pipfile.lock
+poetry.lock
+requirements.txt.bak
+
+
+# Testing related
+.coverage
+.coverage.*
+.cache/
+nosetests.xml
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Local configuration files
+*.local
+config.ini
+
+
+# macOS
+.DS_Store
+
+# Linux
+Thumbs.db
+
+# Other
+*.log
+output.txt # Add other output files as needed
+data.csv # Add other data files as needed
+```
