@@ -1,0 +1,90 @@
+This code implements a CLI version (`src/cli.py`).  A GUI version would require a significantly different approach using a library like Tkinter, PyQt, or a web framework.
+
+```python
+# src/cli.py
+import argparse
+import requests
+import json
+
+API_KEY = "YOUR_API_KEY_HERE"  # Replace with your actual API key from exchangerate-api.com
+BASE_URL = "https://v6.exchangerate-api.com/v6/"
+
+def get_exchange_rates(base_currency="USD"):
+    """Fetches exchange rates from the API."""
+    url = f"{BASE_URL}{API_KEY}/latest/{base_currency}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+        data = response.json()
+        if data["result"] == "success":
+            return data["conversion_rates"]
+        else:
+            raise ValueError(f"API error: {data.get('error-type', 'Unknown error')}")
+    except requests.exceptions.RequestException as e:
+        raise ConnectionError(f"Error connecting to API: {e}")
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON response from API")
+    except KeyError as e:
+        raise ValueError(f"Unexpected API response format: Missing key {e}")
+
+
+def convert_currency(amount, from_currency, to_currency, rates):
+    """Converts the specified amount from one currency to another."""
+    try:
+        rate = rates[to_currency] / rates[from_currency]
+        return amount * rate
+    except KeyError as e:
+        raise ValueError(f"Invalid currency code: {e}")
+
+
+def main():
+    """Main function to handle CLI interaction."""
+    parser = argparse.ArgumentParser(description="Currency Converter")
+    parser.add_argument("amount", type=float, help="Amount to convert")
+    parser.add_argument("from_currency", help="Source currency (e.g., USD, KSH)")
+    parser.add_argument("to_currency", help="Target currency (e.g., EUR, GBP)")
+    args = parser.parse_args()
+
+    try:
+        rates = get_exchange_rates()
+        converted_amount = convert_currency(args.amount, args.from_currency, args.to_currency, rates)
+        print(f"{args.amount} {args.from_currency} = {converted_amount:.2f} {args.to_currency}")
+    except (ConnectionError, ValueError) as e:
+        print(f"Error: {e}")
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP Error: {e}")
+
+
+if __name__ == "__main__":
+    main()
+
+```
+
+**To use this:**
+
+1.  **Get an API key:** Sign up for a free account at exchangerate-api.com and obtain an API key.
+2.  **Replace `YOUR_API_KEY_HERE`:** Substitute your actual API key in `src/cli.py`.
+3.  **Run from the command line:**  `python src/cli.py <amount> <from_currency> <to_currency>`  (e.g., `python src/cli.py 100 USD KSH`)
+
+**Error Handling:** The code includes comprehensive error handling for:
+
+*   Network errors (`ConnectionError`)
+*   Invalid API responses (`ValueError`, `json.JSONDecodeError`)
+*   Invalid currency codes (`ValueError`)
+*   HTTP errors from the API (`requests.exceptions.HTTPError`)
+
+
+**Improvements for a production-ready application:**
+
+*   **Logging:** Implement proper logging to track errors and usage.
+*   **Configuration:** Use a configuration file (e.g., YAML or JSON) to manage API keys and settings.
+*   **Rate Limiting:** Implement logic to handle rate limits imposed by the API.
+*   **Caching:** Cache exchange rates to reduce API calls and improve performance.
+*   **Batch Conversion:** Add functionality to convert multiple currency pairs simultaneously.  This would involve modifying the CLI arguments and the `main` function to accept a list of conversions.
+*   **Input Validation:** Add more robust input validation to ensure the user provides valid currency codes and numerical amounts.
+
+
+Remember to install the `requests` library: `pip install requests`
+
+
+This enhanced CLI provides a solid foundation.  Building a GUI would require a separate effort using a GUI framework.  Remember to always respect the API's terms of service and rate limits.
