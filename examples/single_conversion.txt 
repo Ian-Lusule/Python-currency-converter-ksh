@@ -1,0 +1,91 @@
+This code provides a single conversion example for the `python-currency-converter-ksh` project.  It assumes you have already created the core currency converter functionality (which would involve fetching exchange rates from an API and performing conversions).  This example focuses on reading a conversion request from a file and handling potential errors.
+
+**File: `examples/single_conversion.txt`**
+
+```text
+USD 100 KSH
+```
+
+**File: `python-currency-converter-ksh/converter.py`**  (Partial example - you'll need to fill in the API interaction)
+
+```python
+import requests
+import json
+
+class CurrencyConverter:
+    """
+    A currency converter using real-time exchange rates from an API.
+    """
+
+    def __init__(self, api_key):
+        self.api_key = api_key
+        self.base_url = "https://api.exchangerate-api.com/v4/latest/" # Replace with your actual API
+
+    def get_exchange_rates(self, base_currency):
+        """Fetches exchange rates from the API."""
+        try:
+            url = f"{self.base_url}{base_currency}?access_key={self.api_key}"
+            response = requests.get(url)
+            response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+            data = response.json()
+            if data['success']:
+                return data['rates']
+            else:
+                raise ValueError(f"API Error: {data['error']}")
+        except requests.exceptions.RequestException as e:
+            raise ConnectionError(f"Error connecting to API: {e}")
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON response from API: {e}")
+        except KeyError as e:
+            raise ValueError(f"API response missing key: {e}")
+
+
+    def convert(self, amount, from_currency, to_currency):
+        """Converts an amount from one currency to another."""
+        try:
+            rates = self.get_exchange_rates("USD") # Get rates with USD as base (adjust as needed)
+            if from_currency.upper() == "USD":
+                rate = rates[to_currency.upper()]
+            elif to_currency.upper() == "USD":
+                rate = 1 / rates[from_currency.upper()]
+            else:
+                # Handle non-USD conversions (requires more complex logic)
+                rate = rates[to_currency.upper()] / rates[from_currency.upper()]
+
+            converted_amount = amount * rate
+            return converted_amount
+        except KeyError as e:
+            raise ValueError(f"Unsupported currency: {e}")
+        except (ConnectionError, ValueError) as e:
+            raise RuntimeError(f"Conversion failed: {e}")
+
+
+def process_single_conversion(filepath, api_key):
+    """Processes a single conversion request from a file."""
+    try:
+        with open(filepath, 'r') as f:
+            line = f.readline().strip()
+            from_currency, amount_str, to_currency = line.split()
+            amount = float(amount_str)
+
+        converter = CurrencyConverter(api_key)
+        converted_amount = converter.convert(amount, from_currency, to_currency)
+        print(f"{amount} {from_currency} = {converted_amount:.2f} {to_currency}")
+
+    except FileNotFoundError:
+        print(f"Error: File '{filepath}' not found.")
+    except ValueError as e:
+        print(f"Error: Invalid input format or unsupported currency: {e}")
+    except RuntimeError as e:
+        print(f"Error: Conversion failed: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+
+# Example usage (replace with your actual API key)
+API_KEY = "YOUR_API_KEY"  
+process_single_conversion("examples/single_conversion.txt", API_KEY)
+
+```
+
+Remember to replace `"YOUR_API_KEY"` with your actual API key from exchangerate-api.com (or a similar service).  This improved version includes more robust error handling and clarifies the conversion logic.  You'll need to adapt the `convert` method to handle conversions that don't involve USD as an intermediary if your API doesn't provide direct cross-rates for all currency pairs.  Consider adding more sophisticated error logging and reporting for a production-ready application.
