@@ -1,0 +1,61 @@
+The following code provides instructions for storing an API key securely, *not* the API key itself.  Storing the API key directly in the repository is a significant security risk.  This file should be committed to the repository.
+
+```markdown
+# docs/API_KEY.md
+
+## Optional: Storing Your API Key for exchangerate-api.com
+
+This file provides instructions on how to securely store your exchangerate-api.com API key for use with the `python-currency-converter-ksh` project.  **Do not** commit your actual API key to version control.
+
+**1. Obtain an API Key:**
+
+Go to the exchangerate-api.com website and sign up for an account to obtain your API key.
+
+**2. Environment Variables (Recommended):**
+
+The most secure way to store your API key is as an environment variable.  This keeps your key out of your codebase and prevents accidental commits.
+
+* **Linux/macOS:**
+  ```bash
+  export EXCHANGE_RATE_API_KEY="YOUR_API_KEY_HERE"
+  ```
+  Add this line to your shell's configuration file (e.g., `~/.bashrc`, `~/.zshrc`) so it's set automatically each time you open a new terminal.
+
+* **Windows:**
+  ```powershell
+  $env:EXCHANGE_RATE_API_KEY = "YOUR_API_KEY_HERE"
+  ```
+  You can add this to your system environment variables permanently through the Windows settings.
+
+
+**3. Configuration File (Less Secure):**
+
+If you prefer to use a configuration file, create a file named `.env` (or a similar name) in the root directory of your project.  **Add this file to your `.gitignore` file to prevent it from being committed to version control.**
+
+The `.env` file should contain the following line:
+
+```
+EXCHANGE_RATE_API_KEY=YOUR_API_KEY_HERE
+```
+
+Then, use a library like `python-dotenv` to load the environment variables from this file into your Python code.  Install it using: `pip install python-dotenv`
+
+**4. Accessing the API Key in Your Python Code:**
+
+Regardless of the method you choose, access the API key in your Python code using `os.environ.get()`:
+
+```python
+import os
+
+api_key = os.environ.get("EXCHANGE_RATE_API_KEY")
+
+if api_key is None:
+    raise ValueError("EXCHANGE_RATE_API_KEY environment variable not set.")
+
+# ... rest of your code ...
+```
+
+Remember to handle the case where the API key is not found (as shown above) to prevent your application from crashing.  Using environment variables is the best practice for security and maintainability.
+```
+
+This `API_KEY.md` file clearly explains how to obtain and securely store the API key without revealing any sensitive information in the repository itself.  Remember to add `.env` (if you use that method) to your `.gitignore` file.
